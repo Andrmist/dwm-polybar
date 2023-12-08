@@ -1,6 +1,6 @@
 * dwm-polybar
 dwm-polybar - a minimal golang script that works as a module for [[https://github.com/polybar/polybar][polybar]] without the need to recompile the entire polybar
-[[img:screenshot.png]]
+[[./screenshot.png]]
 
 ** Features
 - basic tag module with the same design as in dwm bar
