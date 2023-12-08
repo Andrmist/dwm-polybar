@@ -82,8 +82,6 @@ type Monitor struct {
 	} `json:"layout"`
 	Clients struct {
 		Selected int `json:"selected"`
-		// Stack []int `json:"stack"`
-		// All []int `json:"all"`
 	}
 }
 

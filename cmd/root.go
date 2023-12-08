@@ -67,11 +67,6 @@ func printResult(tags []ipc.Tag, monitor ipc.Monitor) {
 }
 
 func changeTags(tags []ipc.Tag, state ipc.IPCTagChangeEvent) []ipc.Tag {
-	// a := bitMaskToTagIds(state.Event.OldState.Selected)
-	// log.Println(a)
-	// b := tagIdsToBitMask(a)
-	// log.Println(b)
-
 	old_active := bitMaskToTagIds(state.Event.OldState.Selected)
 	for _, v := range old_active {
 		tags[v].IsActive = false
@@ -105,7 +100,6 @@ func changeTags(tags []ipc.Tag, state ipc.IPCTagChangeEvent) []ipc.Tag {
 	return tags
 }
 
-// rootCmd represents the base command when called without any subcommands
 var (
 	mon_number int
 	rootCmd    = &cobra.Command{
@@ -121,8 +115,6 @@ add it as a script module for your polybar configuration:
 type = custom/script
 exec = dwm-polybar --monitor 1 # see dwm-polybar monitors --help
 tail = true`,
-		// Uncomment the following line if your bare application
-		// has an action associated with it:
 		Run: func(cmd *cobra.Command, args []string) {
 			var buf []byte
 			c, err := net.Dial("unix", "/tmp/dwm.sock")
@@ -241,8 +233,6 @@ tail = true`,
 	}
 )
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
