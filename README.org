@@ -1,0 +1,27 @@
+* dwm-polybar
+dwm-polybar - a minimal golang script that works as a module for [[https://github.com/polybar/polybar][polybar]] without the need to recompile the entire polybar
+
+** Install
+use ~go install~:
+#+BEGIN_SRC shell
+go install github.com/Andrmist/dwm-polybar
+#+END_SRC
+
+** Usage
+If you have more than 1 monitor, you have to run ~dwm-polybar monitors~ to properly select your monitor:
+#+BEGIN_SRC shell
+$ dwm-polybar monitors
+Monitor 0 (current):
+Selected application name: *doom:vterm-popup:#1* – Doom Emacs
+#+END_SRC
+
+After that, add module to your polybar config:
+#+BEGIN_SRC ini
+[module/dwm]
+type = custom/script
+exec = dwm-polybar --monitor 1 # use your monitor number from previous command output
+tail = true
+#+END_SRC
+
+** Known bugs
+- renewing dwm breaks module
