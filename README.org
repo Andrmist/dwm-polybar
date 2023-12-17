@@ -28,5 +28,3 @@ exec = dwm-polybar --monitor 1 # use your monitor number from previous command o
 tail = true
 #+END_SRC
 
-** Known bugs
-- renewing dwm breaks module

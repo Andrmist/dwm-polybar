@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	ipc "github.com/Andrmist/dwm-polybar/utils"
 	"github.com/spf13/cobra"
@@ -175,10 +176,7 @@ tail = true`,
 			printResult(tags, monitor)
 
 			// subscribe to tag and layout updates
-			err = ipc.SendStruct(&c, ipc.IPCSubscribePayload{Event: "tag_change_event", Action: "subscribe"}, ipc.IPC_TYPE_SUBSCRIBE)
-			_, err = c.Read(buf)
-			err = ipc.SendStruct(&c, ipc.IPCSubscribePayload{Event: "layout_change_event", Action: "subscribe"}, ipc.IPC_TYPE_SUBSCRIBE)
-			_, err = c.Read(buf)
+      err = ipc.InitSubscribe(&c)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -189,7 +187,29 @@ tail = true`,
 				_, err := c.Read(buf)
 
 				if err != nil {
-					log.Println(err)
+          if err.Error() == "EOF" {
+            for {
+              c, err = net.Dial("unix", "/tmp/dwm.sock")
+              if err == nil {
+                err = ipc.InitSubscribe(&c)
+                if err != nil {
+                  continue
+                }
+                for i := range tags {
+                  tags[i].IsActive = false
+                  tags[i].IsUrgent = false
+                }
+                tags[0].IsActive = true
+                printResult(tags, monitor)
+                break
+              }
+              time.Sleep(time.Duration(500) * time.Millisecond)
+              log.Println(err)
+            }
+          } else {
+            log.Println(err)
+          }
+          continue
 				}
 
 				next := 0

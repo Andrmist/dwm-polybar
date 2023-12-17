@@ -88,3 +88,13 @@ type Monitor struct {
 type Client struct {
 	Name string `json:"name"`
 }
+
+func InitSubscribe(c *net.Conn) error {
+  buf := make([]byte, 1024)
+  var err error = nil
+  err = SendStruct(c, IPCSubscribePayload{Event: "tag_change_event", Action: "subscribe"}, IPC_TYPE_SUBSCRIBE)
+  _, err = (*c).Read(buf)
+  err = SendStruct(c, IPCSubscribePayload{Event: "layout_change_event", Action: "subscribe"}, IPC_TYPE_SUBSCRIBE)
+  _, err = (*c).Read(buf)
+  return err
+}
