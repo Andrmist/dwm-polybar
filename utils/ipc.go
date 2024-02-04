@@ -18,18 +18,18 @@ const (
 	IPC_TYPE_EVENT          = 6
 )
 
-func GenerateMessage(message []byte, message_type int) []byte {
+func GenerateMessage(message []byte, messageType int) []byte {
 	header := []byte("DWM-IPC")
 	size := make([]byte, 4)
 	binary.LittleEndian.PutUint32(size, uint32(len(message)))
 	header = append(header, size...)
-	header = append(header, byte(message_type))
+	header = append(header, byte(messageType))
 	return append(header, message...)
 }
 
-func SendStruct(c *net.Conn, msg_struct any, message_type int) error {
-	message, _ := json.Marshal(msg_struct)
-	_, err := (*c).Write(GenerateMessage(message, message_type))
+func SendStruct(c *net.Conn, msgStruct any, messageType int) error {
+	message, _ := json.Marshal(msgStruct)
+	_, err := (*c).Write(GenerateMessage(message, messageType))
 	return err
 }
 
@@ -90,11 +90,11 @@ type Client struct {
 }
 
 func InitSubscribe(c *net.Conn) error {
-  buf := make([]byte, 1024)
-  var err error = nil
-  err = SendStruct(c, IPCSubscribePayload{Event: "tag_change_event", Action: "subscribe"}, IPC_TYPE_SUBSCRIBE)
-  _, err = (*c).Read(buf)
-  err = SendStruct(c, IPCSubscribePayload{Event: "layout_change_event", Action: "subscribe"}, IPC_TYPE_SUBSCRIBE)
-  _, err = (*c).Read(buf)
-  return err
+	buf := make([]byte, 1024)
+	var err error = nil
+	err = SendStruct(c, IPCSubscribePayload{Event: "tag_change_event", Action: "subscribe"}, IPC_TYPE_SUBSCRIBE)
+	_, err = (*c).Read(buf)
+	err = SendStruct(c, IPCSubscribePayload{Event: "layout_change_event", Action: "subscribe"}, IPC_TYPE_SUBSCRIBE)
+	_, err = (*c).Read(buf)
+	return err
 }

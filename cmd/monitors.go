@@ -27,10 +27,10 @@ var monitorsCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		buf_size, err := c.Read(buf)
-		raw_b := buf[ipc.HEADER_LEN : buf_size-1]
+		bufSize, err := c.Read(buf)
+		rawB := buf[ipc.HEADER_LEN : bufSize-1]
 		var monitors []ipc.Monitor
-		err = json.Unmarshal(raw_b, &monitors)
+		err = json.Unmarshal(rawB, &monitors)
 		for _, mon := range monitors {
 			buf = make([]byte, 10000)
 			err = ipc.SendStruct(&c, ipc.IPCGetDWMClientPayload{Id: mon.Clients.Selected}, ipc.IPC_TYPE_GET_DWM_CLIENT)
@@ -38,14 +38,14 @@ var monitorsCmd = &cobra.Command{
 				fmt.Println(err)
 				return
 			}
-			buf_size, err := c.Read(buf)
+			bufSize, err := c.Read(buf)
 			if err != nil {
 				fmt.Println(err)
 				return
 			}
-			raw_b := buf[ipc.HEADER_LEN : buf_size-1]
+			rawB := buf[ipc.HEADER_LEN : bufSize-1]
 			var client ipc.Client
-			err = json.Unmarshal(raw_b, &client)
+			err = json.Unmarshal(rawB, &client)
 			if err != nil {
 				fmt.Println(err)
 				return

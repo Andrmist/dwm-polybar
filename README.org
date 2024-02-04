@@ -1,5 +1,5 @@
 * dwm-polybar
-dwm-polybar - a minimal golang script that works as a module for [[https://github.com/polybar/polybar][polybar]] without the need to recompile the entire polybar. You need [[https://dwm.suckless.org/patches/ipc/][ipc patch]] to use this module.
+dwm-polybar - a minimal golang script that works as a module for [[https://github.com/polybar/polybar][polybar]] without the need to recompile the entire polybar
 [[./screenshot.png]]
 
 ** Features
@@ -28,3 +28,5 @@ exec = dwm-polybar --monitor 1 # use your monitor number from previous command o
 tail = true
 #+END_SRC
 
+** Known bugs
+- renewing dwm breaks module

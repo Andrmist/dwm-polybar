@@ -47,19 +47,19 @@ func printResult(tags []ipc.Tag, monitor ipc.Monitor) {
 		if tag.IsOccupied || tag.IsActive {
 			tagslice := make([]int, 1)
 			tagslice[0] = tag.BitMask
-			fill_color_begin := ""
-			fill_color_end := ""
+			fillColorBegin := ""
+			fillColorEnd := ""
 			if tag.IsActive {
-				fill_color_begin = "%{B#005577}"
+				fillColorBegin = "%{B#005577}"
 			}
 			if tag.IsUrgent {
-				fill_color_begin = "%{B#005577}"
+				fillColorBegin = "%{B#005577}"
 			}
-			if fill_color_begin != "" {
-				fill_color_end = "%{B-}"
+			if fillColorBegin != "" {
+				fillColorEnd = "%{B-}"
 			}
 
-			res = append(res, fmt.Sprintf("%s%s %s %s%s", "%{A1:dwm-msg run_command view "+strconv.Itoa(tag.BitMask)+":}", fill_color_begin, tag.Name, fill_color_end, "%{A}"))
+			res = append(res, fmt.Sprintf("%s%s %s %s%s", "%{A1:dwm-msg run_command view "+strconv.Itoa(tag.BitMask)+":}", fillColorBegin, tag.Name, fillColorEnd, "%{A}"))
 
 		}
 	}
@@ -68,33 +68,33 @@ func printResult(tags []ipc.Tag, monitor ipc.Monitor) {
 }
 
 func changeTags(tags []ipc.Tag, state ipc.IPCTagChangeEvent) []ipc.Tag {
-	old_active := bitMaskToTagIds(state.Event.OldState.Selected)
-	for _, v := range old_active {
+	oldActive := bitMaskToTagIds(state.Event.OldState.Selected)
+	for _, v := range oldActive {
 		tags[v].IsActive = false
 	}
 
-	old_urgent := bitMaskToTagIds(state.Event.OldState.Urgent)
-	for _, v := range old_urgent {
+	oldUrgent := bitMaskToTagIds(state.Event.OldState.Urgent)
+	for _, v := range oldUrgent {
 		tags[v].IsUrgent = false
 	}
 
-	old_occupied := bitMaskToTagIds(state.Event.OldState.Occupied)
-	for _, v := range old_occupied {
+	oldOccupied := bitMaskToTagIds(state.Event.OldState.Occupied)
+	for _, v := range oldOccupied {
 		tags[v].IsOccupied = false
 	}
 
-	new_active := bitMaskToTagIds(state.Event.NewState.Selected)
-	for _, v := range new_active {
+	newActive := bitMaskToTagIds(state.Event.NewState.Selected)
+	for _, v := range newActive {
 		tags[v].IsActive = true
 	}
 
-	new_urgent := bitMaskToTagIds(state.Event.NewState.Urgent)
-	for _, v := range new_urgent {
+	newUrgent := bitMaskToTagIds(state.Event.NewState.Urgent)
+	for _, v := range newUrgent {
 		tags[v].IsUrgent = true
 	}
 
-	new_occupied := bitMaskToTagIds(state.Event.NewState.Occupied)
-	for _, v := range new_occupied {
+	newOccupied := bitMaskToTagIds(state.Event.NewState.Occupied)
+	for _, v := range newOccupied {
 		tags[v].IsOccupied = true
 	}
 
@@ -102,8 +102,8 @@ func changeTags(tags []ipc.Tag, state ipc.IPCTagChangeEvent) []ipc.Tag {
 }
 
 var (
-	mon_number int
-	rootCmd    = &cobra.Command{
+	monNumber int
+	rootCmd   = &cobra.Command{
 		Use:   "dwm-polybar",
 		Short: "golang app as a module for polybar to show information about dwm tags and layouts",
 		Long: `dwm-polybar - golang app as a module for polybar to show information about dwm tags and layouts
@@ -132,13 +132,13 @@ tail = true`,
 				log.Println(err)
 				return
 			}
-			buf_size, err := c.Read(buf)
-			raw_b := buf[ipc.HEADER_LEN : buf_size-1]
+			bufSize, err := c.Read(buf)
+			rawB := buf[ipc.HEADER_LEN : bufSize-1]
 			var monitors []ipc.Monitor
-			err = json.Unmarshal(raw_b, &monitors)
+			err = json.Unmarshal(rawB, &monitors)
 			var monitor ipc.Monitor
 			for _, mon := range monitors {
-				if mon.Number == mon_number {
+				if mon.Number == monNumber {
 					monitor = mon
 				}
 			}
@@ -149,34 +149,34 @@ tail = true`,
 			}
 
 			buf = make([]byte, 1024)
-			buf_size, err = c.Read(buf)
-			raw_b = buf[ipc.HEADER_LEN : buf_size-1]
+			bufSize, err = c.Read(buf)
+			rawB = buf[ipc.HEADER_LEN : bufSize-1]
 			var tags []ipc.Tag
-			err = json.Unmarshal(raw_b, &tags)
+			err = json.Unmarshal(rawB, &tags)
 
 			sort.Slice(tags, func(i, j int) bool {
 				return tags[i].BitMask < tags[j].BitMask
 			})
 
-			new_active := bitMaskToTagIds(monitor.TagState.Selected)
-			for _, v := range new_active {
+			newActive := bitMaskToTagIds(monitor.TagState.Selected)
+			for _, v := range newActive {
 				tags[v].IsActive = true
 			}
 
-			new_urgent := bitMaskToTagIds(monitor.TagState.Urgent)
-			for _, v := range new_urgent {
+			newUrgent := bitMaskToTagIds(monitor.TagState.Urgent)
+			for _, v := range newUrgent {
 				tags[v].IsUrgent = true
 			}
 
-			new_occupied := bitMaskToTagIds(monitor.TagState.Occupied)
-			for _, v := range new_occupied {
+			newOccupied := bitMaskToTagIds(monitor.TagState.Occupied)
+			for _, v := range newOccupied {
 				tags[v].IsOccupied = true
 			}
 
 			printResult(tags, monitor)
 
 			// subscribe to tag and layout updates
-      err = ipc.InitSubscribe(&c)
+			err = ipc.InitSubscribe(&c)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -187,46 +187,46 @@ tail = true`,
 				_, err := c.Read(buf)
 
 				if err != nil {
-          if err.Error() == "EOF" {
-            for {
-              c, err = net.Dial("unix", "/tmp/dwm.sock")
-              if err == nil {
-                err = ipc.InitSubscribe(&c)
-                if err != nil {
-                  continue
-                }
-                for i := range tags {
-                  tags[i].IsActive = false
-                  tags[i].IsUrgent = false
-                }
-                tags[0].IsActive = true
-                printResult(tags, monitor)
-                break
-              }
-              time.Sleep(time.Duration(500) * time.Millisecond)
-              log.Println(err)
-            }
-          } else {
-            log.Println(err)
-          }
-          continue
+					if err.Error() == "EOF" {
+						for {
+							c, err = net.Dial("unix", "/tmp/dwm.sock")
+							if err == nil {
+								err = ipc.InitSubscribe(&c)
+								if err != nil {
+									continue
+								}
+								for i := range tags {
+									tags[i].IsActive = false
+									tags[i].IsUrgent = false
+								}
+								tags[0].IsActive = true
+								printResult(tags, monitor)
+								break
+							}
+							time.Sleep(time.Duration(500) * time.Millisecond)
+							log.Println(err)
+						}
+					} else {
+						log.Println(err)
+					}
+					continue
 				}
 
 				next := 0
 				for i := 0; i < strings.Count(string(buf), "DWM-IPC"); i++ {
-					payload_size := binary.LittleEndian.Uint32(buf[next+ipc.MAGIC_LEN : next+ipc.MAGIC_LEN+4])
-					raw_b := buf[next+ipc.HEADER_LEN : next+ipc.HEADER_LEN+int(payload_size)-1]
+					payloadSize := binary.LittleEndian.Uint32(buf[next+ipc.MAGIC_LEN : next+ipc.MAGIC_LEN+4])
+					rawB := buf[next+ipc.HEADER_LEN : next+ipc.HEADER_LEN+int(payloadSize)-1]
 
-					var raw_json map[string]interface{}
-					err = json.Unmarshal(raw_b, &raw_json)
+					var rawJson map[string]interface{}
+					err = json.Unmarshal(rawB, &rawJson)
 					if err != nil {
 						log.Fatalf("Unable to marshal JSON due to %s", err)
 					}
 
-					for k := range raw_json {
+					for k := range rawJson {
 						if k == "tag_change_event" {
 							var event ipc.IPCTagChangeEvent
-							err = json.Unmarshal(raw_b, &event)
+							err = json.Unmarshal(rawB, &event)
 							if event.Event.MonitorNumber == monitor.Number {
 								tags = changeTags(tags, event)
 								printResult(tags, monitor)
@@ -236,7 +236,7 @@ tail = true`,
 
 						if k == "layout_change_event" {
 							var event ipc.IPCLayoutChangeEvent
-							err = json.Unmarshal(raw_b, &event)
+							err = json.Unmarshal(rawB, &event)
 							if event.Event.MonitorNumber == monitor.Number {
 								monitor.Layout.Symbol.Current = event.Event.NewSymbol
 								printResult(tags, monitor)
@@ -245,7 +245,7 @@ tail = true`,
 						}
 					}
 
-					next += ipc.HEADER_LEN + int(payload_size)
+					next += ipc.HEADER_LEN + int(payloadSize)
 				}
 			}
 
@@ -261,5 +261,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().IntVar(&mon_number, "monitor", 0, "monitor num we want to process (see dwm-polybar monitors --help)")
+	rootCmd.Flags().IntVar(&monNumber, "monitor", 0, "monitor num we want to process (see dwm-polybar monitors --help)")
 }
