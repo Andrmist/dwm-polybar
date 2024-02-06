@@ -273,13 +273,9 @@ tail = true`,
 			v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 			v.AutomaticEnv()
 			cmd.Flags().VisitAll(func(f *pflag.Flag) {
-				// Determine the naming convention of the flags when represented in the config file
 				configName := f.Name
-				// If using camelCase in the config file, replace hyphens with a camelCased string.
-				// Since viper does case-insensitive comparisons, we don't need to bother fixing the case, and only need to remove the hyphens.
 				configName = strings.ReplaceAll(f.Name, "-", "")
 
-				// Apply the viper config value to the flag when the flag is not set and viper has a value
 				if !f.Changed && v.IsSet(configName) {
 					val := v.Get(configName)
 					cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))

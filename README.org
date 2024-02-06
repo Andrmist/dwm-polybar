@@ -13,6 +13,24 @@ go install github.com/Andrmist/dwm-polybar@latest
 #+END_SRC
 
 ** Usage
+#+BEGIN_SRC
+Usage:
+  dwm-polybar [flags]
+  dwm-polybar [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  monitors    helper command to get information about monitors known by dwm
+
+Flags:
+      --active-bg string   set background color for active tags (default "005577")
+      --active-fg string   set foreground color for active tags (default "ffffff")
+  -h, --help               help for dwm-polybar
+      --monitor int        monitor num we want to process (see dwm-polybar monitors --help)
+      --urgent-bg string   set background color for urgent tags (default "005577")
+      --urgent-fg string   set foreground color for urgent tags (default "ffffff")
+#+END_SRC
 If you have more than 1 monitor, you have to run ~dwm-polybar monitors~ to properly select your monitor:
 #+BEGIN_SRC
 $ dwm-polybar monitors
