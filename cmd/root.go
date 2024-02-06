@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/pflag"
 	"log"
 	"math"
 	"net"
@@ -15,6 +16,7 @@ import (
 
 	ipc "github.com/Andrmist/dwm-polybar/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func bitMaskToTagIds(bitmask int) []int {
@@ -45,18 +47,18 @@ func printResult(tags []ipc.Tag, monitor ipc.Monitor) {
 	var res []string
 	for _, tag := range tags {
 		if tag.IsOccupied || tag.IsActive {
-			tagslice := make([]int, 1)
-			tagslice[0] = tag.BitMask
+			tagSlice := make([]int, 1)
+			tagSlice[0] = tag.BitMask
 			fillColorBegin := ""
 			fillColorEnd := ""
 			if tag.IsActive {
-				fillColorBegin = "%{B#005577}"
+				fillColorBegin = fmt.Sprintf("%%{B#%s}%%{F#%s}", bgActiveFillColor, fgActiveFillColor)
 			}
 			if tag.IsUrgent {
-				fillColorBegin = "%{B#005577}"
+				fillColorBegin = fmt.Sprintf("%%{B#%s}%%{F#%s}", bgUrgentFillColor, fgUrgentFillColor)
 			}
 			if fillColorBegin != "" {
-				fillColorEnd = "%{B-}"
+				fillColorEnd = "%{B- F-}"
 			}
 
 			res = append(res, fmt.Sprintf("%s%s %s %s%s", "%{A1:dwm-msg run_command view "+strconv.Itoa(tag.BitMask)+":}", fillColorBegin, tag.Name, fillColorEnd, "%{A}"))
@@ -102,8 +104,12 @@ func changeTags(tags []ipc.Tag, state ipc.IPCTagChangeEvent) []ipc.Tag {
 }
 
 var (
-	monNumber int
-	rootCmd   = &cobra.Command{
+	monNumber         int
+	bgActiveFillColor string
+	bgUrgentFillColor string
+	fgActiveFillColor string
+	fgUrgentFillColor string
+	rootCmd           = &cobra.Command{
 		Use:   "dwm-polybar",
 		Short: "golang app as a module for polybar to show information about dwm tags and layouts",
 		Long: `dwm-polybar - golang app as a module for polybar to show information about dwm tags and layouts
@@ -250,6 +256,37 @@ tail = true`,
 			}
 
 		},
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			v := viper.New()
+			v.SetConfigName("dwm-polybar")
+			v.AddConfigPath(".")
+			v.AddConfigPath(os.Getenv("XDG_CONFIG_HOME"))
+			v.AddConfigPath(fmt.Sprintf("%s/.config/dwm-polybar", os.Getenv("HOME")))
+			if err := v.ReadInConfig(); err != nil {
+				// It's okay if there isn't a config file
+				if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+					return err
+				}
+			}
+
+			v.SetEnvPrefix("DWM")
+			v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+			v.AutomaticEnv()
+			cmd.Flags().VisitAll(func(f *pflag.Flag) {
+				// Determine the naming convention of the flags when represented in the config file
+				configName := f.Name
+				// If using camelCase in the config file, replace hyphens with a camelCased string.
+				// Since viper does case-insensitive comparisons, we don't need to bother fixing the case, and only need to remove the hyphens.
+				configName = strings.ReplaceAll(f.Name, "-", "")
+
+				// Apply the viper config value to the flag when the flag is not set and viper has a value
+				if !f.Changed && v.IsSet(configName) {
+					val := v.Get(configName)
+					cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+				}
+			})
+			return nil
+		},
 	}
 )
 
@@ -261,5 +298,10 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().IntVar(&monNumber, "monitor", 0, "monitor num we want to process (see dwm-polybar monitors --help)")
+	flags := rootCmd.Flags()
+	flags.IntVar(&monNumber, "monitor", 0, "monitor num we want to process (see dwm-polybar monitors --help)")
+	flags.StringVar(&bgActiveFillColor, "active-bg", "005577", "set background color for active tags")
+	flags.StringVar(&bgUrgentFillColor, "urgent-bg", "005577", "set background color for urgent tags")
+	flags.StringVar(&fgActiveFillColor, "active-fg", "ffffff", "set foreground color for active tags")
+	flags.StringVar(&fgUrgentFillColor, "urgent-fg", "ffffff", "set foreground color for urgent tags")
 }
