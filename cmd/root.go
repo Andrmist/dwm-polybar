@@ -4,15 +4,15 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/pflag"
 	"log"
 	"math"
 	"net"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
+
+	"github.com/spf13/pflag"
 
 	ipc "github.com/Andrmist/dwm-polybar/utils"
 	"github.com/spf13/cobra"
@@ -47,26 +47,36 @@ func printResult(tags []ipc.Tag, monitor ipc.Monitor) {
 	var res []string
 	for _, tag := range tags {
 		if tag.IsOccupied || tag.IsActive {
-			tagSlice := make([]int, 1)
-			tagSlice[0] = tag.BitMask
 			fillColorBegin := ""
 			fillColorEnd := ""
 			if tag.IsActive {
-				fillColorBegin = fmt.Sprintf("%%{B#%s}%%{F#%s}", bgActiveFillColor, fgActiveFillColor)
+				fillColorBegin = fmt.Sprintf("%%{B%s}%%{F%s}", bgActiveFillColor, fgActiveFillColor)
 			}
 			if tag.IsUrgent {
-				fillColorBegin = fmt.Sprintf("%%{B#%s}%%{F#%s}", bgUrgentFillColor, fgUrgentFillColor)
+				fillColorBegin = fmt.Sprintf("%%{B%s}%%{F%s}", bgUrgentFillColor, fgUrgentFillColor)
 			}
 			if fillColorBegin != "" {
 				fillColorEnd = "%{B- F-}"
 			}
-
-			res = append(res, fmt.Sprintf("%s%s %s %s%s", "%{A1:dwm-msg run_command view "+strconv.Itoa(tag.BitMask)+":}", fillColorBegin, tag.Name, fillColorEnd, "%{A}"))
-
+			attachTag := 0
+			if !tag.IsActive {
+				attachTag = monitor.TagState.Selected + tag.BitMask
+			} else {
+				attachTag = monitor.TagState.Selected - tag.BitMask
+			}
+			// fmt.Printf("%9b - active bitmask\n%9b - calc tag\n%9b - result\n", monitor.TagState.Selected, tag.BitMask, attachTag)
+			// fmt.Println("===")
+			res = append(res, fmt.Sprintf("%s%s%s%s%s%s%s",
+				fmt.Sprintf("%%{A1:dwm-msg run_command view %d:}%%{A3:dwm-msg run_command view %d:}", tag.BitMask, attachTag),
+				fillColorBegin,
+				strings.Repeat(" ", padding),
+				tag.Name,
+				strings.Repeat(" ", padding),
+				fillColorEnd,
+				"%{A}%{A}"))
 		}
 	}
-	res = append(res, monitor.Layout.Symbol.Current)
-	fmt.Println(strings.Join(res, " "))
+	fmt.Println(strings.Join(res, "") + " " + monitor.Layout.Symbol.Current)
 }
 
 func changeTags(tags []ipc.Tag, state ipc.IPCTagChangeEvent) []ipc.Tag {
@@ -109,6 +119,7 @@ var (
 	bgUrgentFillColor string
 	fgActiveFillColor string
 	fgUrgentFillColor string
+	padding           int
 	rootCmd           = &cobra.Command{
 		Use:   "dwm-polybar",
 		Short: "golang app as a module for polybar to show information about dwm tags and layouts",
@@ -234,6 +245,7 @@ tail = true`,
 							var event ipc.IPCTagChangeEvent
 							err = json.Unmarshal(rawB, &event)
 							if event.Event.MonitorNumber == monitor.Number {
+								monitor.TagState = event.Event.NewState
 								tags = changeTags(tags, event)
 								printResult(tags, monitor)
 							}
@@ -296,8 +308,9 @@ func Execute() {
 func init() {
 	flags := rootCmd.Flags()
 	flags.IntVar(&monNumber, "monitor", 0, "monitor num we want to process (see dwm-polybar monitors --help)")
-	flags.StringVar(&bgActiveFillColor, "active-bg", "005577", "set background color for active tags")
-	flags.StringVar(&bgUrgentFillColor, "urgent-bg", "005577", "set background color for urgent tags")
-	flags.StringVar(&fgActiveFillColor, "active-fg", "ffffff", "set foreground color for active tags")
-	flags.StringVar(&fgUrgentFillColor, "urgent-fg", "ffffff", "set foreground color for urgent tags")
+	flags.IntVar(&padding, "padding", 1, "padding in tag")
+	flags.StringVar(&bgActiveFillColor, "active-bg", "#005577", "set background color for active tags")
+	flags.StringVar(&bgUrgentFillColor, "urgent-bg", "#005577", "set background color for urgent tags")
+	flags.StringVar(&fgActiveFillColor, "active-fg", "#ffffff", "set foreground color for active tags")
+	flags.StringVar(&fgUrgentFillColor, "urgent-fg", "#ffffff", "set foreground color for urgent tags")
 }
