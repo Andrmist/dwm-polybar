@@ -12,7 +12,7 @@ import (
 var monitorsCmd = &cobra.Command{
 	Use:   "monitors",
 	Short: "helper command to get information about monitors known by dwm",
-	Long:  `since we can't predict what monitor you're trying to use, you can see what applications are present on each monitor, so you can see what "--monitor" value you should use`,
+	Long:  `dwm-polybar tries to guess your monitor based on where bar is located based by dwm info. If you want to specify monitor to use, you can use this helper subcommand to get monitors and currently selected app to help you find the monitor`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var buf []byte
 		c, err := net.Dial("unix", "/tmp/dwm.sock")

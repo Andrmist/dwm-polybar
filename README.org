@@ -24,14 +24,17 @@ Available Commands:
   monitors    helper command to get information about monitors known by dwm
 
 Flags:
-      --active-bg string   set background color for active tags (default "005577")
-      --active-fg string   set foreground color for active tags (default "ffffff")
+      --active-bg string   set background color for active tags (default "#005577")
+      --active-fg string   set foreground color for active tags (default "#ffffff")
   -h, --help               help for dwm-polybar
-      --monitor int        monitor num we want to process (see dwm-polybar monitors --help)
-      --urgent-bg string   set background color for urgent tags (default "005577")
-      --urgent-fg string   set foreground color for urgent tags (default "ffffff")
+      --monitor int        monitor num if you don't want to auto guess (see dwm-polybar monitors --help) (default -1)
+      --padding int        padding in tag (default 1)
+      --urgent-bg string   set background color for urgent tags (default "#005577")
+      --urgent-fg string   set foreground color for urgent tags (default "#ffffff")
+
+Use "dwm-polybar [command] --help" for more information about a command.
 #+END_SRC
-If you have more than 1 monitor, you have to run ~dwm-polybar monitors~ to properly select your monitor:
+If autoguessing monitor doesn't work for you or you have another reason to specify manually your monitor, you can use this subcommand to get proper id for ~--monitor~ parameter:
 #+BEGIN_SRC
 $ dwm-polybar monitors
 Monitor 0 (current):
@@ -42,9 +45,8 @@ After that, add module to your polybar config:
 #+BEGIN_SRC ini
 [module/dwm]
 type = custom/script
-exec = dwm-polybar --monitor 1 # use your monitor number from previous command output
+exec = dwm-polybar --padding 1 --active-bg #7e9cd8 --urgent-bg #c34043
 tail = true
 #+END_SRC
 
 ** Known bugs
-- renewing dwm breaks module
