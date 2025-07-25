@@ -138,7 +138,7 @@ add it as a script module for your polybar configuration:
 
 [module/dwm]
 type = custom/script
-exec = dwm-polybar --padding 1 --active-bg #7e9cd8 --urgent-bg #c34043
+exec = dwm-polybar --padding 1 --active-bg '#7e9cd8' --urgent-bg '#c34043'
 tail = true`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var buf []byte
