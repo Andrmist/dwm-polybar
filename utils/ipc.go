@@ -82,7 +82,10 @@ type Monitor struct {
 	} `json:"layout"`
 	Clients struct {
 		Selected int `json:"selected"`
-	}
+	} `json:"clients"`
+	Bar struct {
+		WindowID int `json:"window_id"`
+	} `json:"bar"`
 }
 
 type Client struct {

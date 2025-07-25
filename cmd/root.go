@@ -12,6 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jezek/xgb/xproto"
+	"github.com/jezek/xgbutil"
+	"github.com/jezek/xgbutil/xprop"
 	"github.com/spf13/pflag"
 
 	ipc "github.com/Andrmist/dwm-polybar/utils"
@@ -120,7 +123,11 @@ var (
 	fgActiveFillColor string
 	fgUrgentFillColor string
 	padding           int
-	rootCmd           = &cobra.Command{
+
+	barPID    uint32
+	parentPID int
+
+	rootCmd = &cobra.Command{
 		Use:   "dwm-polybar",
 		Short: "golang app as a module for polybar to show information about dwm tags and layouts",
 		Long: `dwm-polybar - golang app as a module for polybar to show information about dwm tags and layouts
@@ -149,15 +156,44 @@ tail = true`,
 				log.Println(err)
 				return
 			}
+
 			bufSize, err := c.Read(buf)
 			rawB := buf[ipc.HEADER_LEN : bufSize-1]
 			var monitors []ipc.Monitor
+			// fmt.Println(string(rawB))
 			err = json.Unmarshal(rawB, &monitors)
 			var monitor ipc.Monitor
-			for _, mon := range monitors {
-				if mon.Number == monNumber {
-					monitor = mon
+			if monNumber == -1 {
+				for i, mon := range monitors {
+					X, err := xgbutil.NewConn()
+					if err != nil {
+						log.Printf("failed to get monitor: %s\n", err)
+						return
+					}
+					// fmt.Printf("bar window id: %d\n", mon.Bar.WindowID)
+					barProp, err := xprop.GetProperty(X, xproto.Window(mon.Bar.WindowID), "_NET_WM_PID")
+					if err != nil {
+						log.Printf("failed to get monitor: %s\n", err)
+						return
+					}
+					parentPID = os.Getppid()
+					barPID = binary.LittleEndian.Uint32(barProp.Value)
+					if uint32(parentPID) == barPID {
+						monitor = mon
+						monNumber = i
+						break
+					}
 				}
+			} else {
+				for _, mon := range monitors {
+					if mon.Number == monNumber {
+						monitor = mon
+					}
+				}
+			}
+			if monNumber == -1 {
+				monNumber = 0
+				monitor = monitors[monNumber]
 			}
 
 			_, err = c.Write(ipc.GenerateMessage(make([]byte, 0), ipc.IPC_TYPE_GET_TAGS))
@@ -307,7 +343,7 @@ func Execute() {
 
 func init() {
 	flags := rootCmd.Flags()
-	flags.IntVar(&monNumber, "monitor", 0, "monitor num we want to process (see dwm-polybar monitors --help)")
+	flags.IntVar(&monNumber, "monitor", -1, "monitor num we want to process (see dwm-polybar monitors --help)")
 	flags.IntVar(&padding, "padding", 1, "padding in tag")
 	flags.StringVar(&bgActiveFillColor, "active-bg", "#005577", "set background color for active tags")
 	flags.StringVar(&bgUrgentFillColor, "urgent-bg", "#005577", "set background color for urgent tags")
