@@ -176,7 +176,6 @@ tail = true`,
 						log.Printf("failed to get monitor: %s\n", err)
 						return
 					}
-					parentPID = os.Getppid()
 					barPID = binary.LittleEndian.Uint32(barProp.Value)
 					if uint32(parentPID) == barPID {
 						monitor = mon
@@ -349,4 +348,5 @@ func init() {
 	flags.StringVar(&bgUrgentFillColor, "urgent-bg", "#005577", "set background color for urgent tags")
 	flags.StringVar(&fgActiveFillColor, "active-fg", "#ffffff", "set foreground color for active tags")
 	flags.StringVar(&fgUrgentFillColor, "urgent-fg", "#ffffff", "set foreground color for urgent tags")
+	flags.IntVar(&parentPID, "bar-pid", 0, "bar pid from polybar")
 }
